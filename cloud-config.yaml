@@ -1,0 +1,39 @@
+#cloud-config
+packages:
+  - zsh
+  - git
+  - curl
+  - wget
+  - nano
+  - net-tools
+  - ca-certificates
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+ssh_genkeytypes: [ed25519]
+disable_root: true
+ssh_pwauth: false
+
+user:
+  name: sven
+  sudo: ALL=(ALL) NOPASSWD:ALL
+  shell: /bin/zsh
+  ssh_authorized_keys:
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP700qAmqpoOKrrwF6oCYDIt48r8cm0QYpdKQx7ZiOG9 Sven Hofmann
+
+runcmd:
+  # Install Antigen
+  - curl -L git.io/antigen > /opt/antigen.zsh && chown root:root /opt/antigen.zsh && chmod 644 /opt/antigen.zsh
+  # Install ZSH Configuration
+  - curl -L https://raw.githubusercontent.com/techbysven/cloud-init-config/master/.zshrc > /home/sven/.zshrc && chown sven:sven /home/sven/.zshrc && chmod 640 /home/sven/.zshrc
+  # Install Powerlevel10k Configuration
+  - curl -L https://raw.githubusercontent.com/techbysven/cloud-init-config/master/.p10k.zsh > /home/sven/.p10k.zsh && chown sven:sven /home/sven/.p10k.zsh && chmod 640 /home/sven/.p10k.zsh
+  # Install Antigen Configuration
+  - curl -L https://raw.githubusercontent.com/techbysven/cloud-init-config/master/.antigenrc > /home/sven/.antigenrc && chown sven:sven /home/sven/.antigenrc && chmod 640 /home/sven/.antigenrc
+  # Copy ZSH Configuration to root
+  - cp /home/sven/.zshrc /home/sven/.p10k.zsh /home/sven/.antigenrc /root/ && chown root:root /root/.zshrc /root/.p10k.zsh /root/.antigenrc
+  # Set ZSH as default shell for root
+  - chsh -s /bin/zsh root
+  # Disable root login via SSH
+  - echo "PermitRootLogin no" >> /etc/ssh/sshd_config && systemctl restart sshd
